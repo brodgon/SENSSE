@@ -1,0 +1,7 @@
+tensorflow
+nibabel
+numpy
+matplotlib
+scipy
+tqdm
+pyyaml
