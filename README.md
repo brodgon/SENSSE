@@ -115,4 +115,9 @@ This study has been funded by the MAGERIT-CM project (TEC-2024/COM-44), funded b
 
 <p align="center">
 
-<img src="docs/images/urjc_logo.png" alt="URJC" height="70"/>&nbsp;&romise_logo.png" alt="PROMISE Researchs/images/cpt_logo.png" alt="Centro de Protonterapia Quirónsaludgo.png" alt="MAGERIT-CM" height="70
+<img src="docs/images/urjc_logo.png" alt="URJC" height="70"/>
+<img src="docs/images/promise_logo.png" alt="PROMISE" height="70"/>
+<img src="docs/images/cpt_logo.png" alt="CPT" height="70"/>
+<img src="docs/images/magerit_logo.png" alt="MAGERIT" height="70"/>
+</p>
+--
