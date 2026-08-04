@@ -1,6 +1,4 @@
-# SENSSE
-
-**Simultaneous Evidential Network for Synthesis and Segmentation with Uncertainty Quantification**
+# SENSSE: Simultaneous Evidential Network for Synthesis and Segmentation with Uncertainty Quantification
 
 SENSSE is a deep learning framework for the simultaneous generation of synthetic CT (sCT) images and organ-at-risk (OAR) segmentation masks from cone-beam CT (CBCT) images, while providing uncertainty estimates for both tasks.
 
@@ -14,18 +12,15 @@ The framework combines multitask learning, Evidential Deep Learning (EDL), and N
 
 # Overview
 
-Adaptive radiotherapy relies on accurate image synthesis and segmentation for treatment monitoring and dose recalculation. Traditionally, these tasks are modeled independently and often lack reliable uncertainty information.
+Adaptive radiotherapy requires accurate anatomical information for treatment adaptation, dose recalculation and treatment monitoring. Two key components of this workflow are CBCT-to-CT synthesis and organ-at-risk (OAR) segmentation. Although these tasks are strongly interconnected, they are traditionally addressed using independent models, preventing them from exploiting complementary anatomical and intensity information. SENSSE is built upon the hypothesis that image synthesis and segmentation can mutually benefit from being learned simultaneously. While segmentation provides structural and anatomical guidance that can improve synthetic CT generation, image synthesis offers richer intensity information that may facilitate tissue delineation and boundary identification. Jointly learning both tasks encourages the extraction of shared representations that are relevant to adaptive radiotherapy workflows. Beyond multitask learning, SENSSE incorporates uncertainty quantification for both synthesis and segmentation. 
 
-SENSSE addresses these limitations by:
+SENSSE hey features include:
 
 - Performing CBCT-to-CT synthesis and OAR segmentation simultaneously.
-- Modeling uncertainties for both tasks.
-- Leveraging evidential learning instead of computationally expensive sampling-based approaches.
+- Modeling uncertainties for both tasks through evidential deep learning, without requiring sampling approaches.
 - Supporting configurable 2D and 2.5D inputs.
 - Providing a modular framework for training, inference, evaluation, and uncertainty analysis.
-
-The architecture consists of a shared encoder and two task-specific decoders connected through configurable interaction mechanisms, enabling information exchange between synthesis and segmentation pathways.
-
+  
 ---
 
 # Scope and Objectives
@@ -36,7 +31,6 @@ The repository aims to provide a reproducible framework for:
 - Uncertainty-aware medical image analysis.
 - Investigation of evidential learning methods for image synthesis and segmentation.
 - Development of adaptive radiotherapy workflows.
-
 
 ---
 
@@ -101,24 +95,9 @@ Detailed documentation is provided in the `docs/` folder.
 | `technical_details.md` | Architecture, losses and implementation details |
 | `metrics.md` | Mathematical definitions of all evaluation metrics |
 | `results.md` | Summary of experimental results and ablation studies |
-| `faq.md` | Frequently asked questions |
 
 ---
 
-# Model Highlights
-
-- Simultaneous synthesis and segmentation.
-- Evidential Deep Learning for uncertainty-aware segmentation.
-- Normal-Inverse-Gamma regression for uncertainty-aware synthesis.
-- Attention-gated dual-decoder architecture.
-- Configurable decoder interaction mechanisms:
-  - None
-  - Syn2Seg
-  - Seg2Syn
-  - Bidirectional
-- Configurable 2D and 2.5D inputs through the `num_slices` parameter.
-
----
 
 # Citation
 
@@ -130,10 +109,9 @@ The citation will be updated once the manuscript is formally published.
 
 # Acknowledgements
 
-This work was developed within the PROMISE research group at Universidad Rey Juan Carlos (URJC).
+This work was developed by the **PROMISE Research Group** at **Universidad Rey Juan Carlos** in collaboration with the **Centro de Protonterapia Quirónsalud**.
+This study has been funded by the MAGERIT-CM project (TEC-2024/COM-44), funded by Comunidad de Madrid.
 
----
+<p align="center">
 
-# License
-
-This project is distributed under the license included in the `LICENSE` file.
+<img src="docs/images/urjc_logo.png" alt="URJC" height="70"/>&nbsp;&romise_logo.png" alt="PROMISE Researchs/images/cpt_logo.png" alt="Centro de Protonterapia Quirónsaludgo.png" alt="MAGERIT-CM" height="70
