@@ -5,7 +5,7 @@ SENSSE is a deep learning framework for the simultaneous generation of synthetic
 The framework combines multitask learning, Evidential Deep Learning (EDL), and Normal-Inverse-Gamma (NIG) regression to jointly perform image synthesis, segmentation, and uncertainty quantification within a unified architecture.
 
 <p align="center">
-  <img src="docs/images/Fig2_Inference.png" width="500"/>
+  <img src="docs/images/Fig2_Inference.png" width="1000"/>
 </p>
 
 
