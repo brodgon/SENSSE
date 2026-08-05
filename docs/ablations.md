@@ -70,6 +70,10 @@ To answer these questions, four interaction configurations were evaluated.
 
 ## Evaluated Interaction Strategies
 
+<p align="center">
+  <img src="images/Ablations_1-ConnectionsArchitecture.png" width="1000"/>
+</p>
+
 ### None
 
 In this configuration, the synthesis and segmentation decoders operate completely independently after the shared encoder. Although both tasks benefit from common encoder representations, no information is exchanged during reconstruction. This experiment serves as the baseline against which all interaction mechanisms are compared.
