@@ -52,8 +52,10 @@ SENSSE represents the complete proposed framework
 
 SENSSE framework provides the most balanced performance across image synthesis and segmentation tasks. While single-task models achieve competitive results within their respective domains, jointly learning both tasks enables the model to exploit complementary information and improve overall performance. Furthermore, the comparison between Multitask, SENSSE-noCE and the full SENSSE configuration highlights the contribution of uncertainty-aware learning and auxiliary supervision to the final performance.
 
-- TODO: Insert Image
-- 
+<p align="center">
+  <img src="images/Ablations_0-ComponentQualitative.png" width="1000"/>
+</p>
+
 Qualitative examples further illustrate the benefits of joint learning. Compared with simpler architectures, SENSSE produces synthetic images with improved anatomical consistency while simultaneously generating more accurate segmentation masks, particularly in challenging regions exhibiting low tissue contrast or complex anatomical boundaries.
 
 ---
