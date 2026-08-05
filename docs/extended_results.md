@@ -8,13 +8,17 @@ This document provides additional experimental results that complement the analy
 
 All primary experiments reported in the manuscript were evaluated using a five-fold cross-validation protocol. While the paper reports aggregated statistics (mean ± standard deviation), the following tables present the results obtained on each individual fold.
 
-## Head & Neck Dataset
+## Sythesis Results
 
-*Insert Fold-wise Results Table*
+<p align="center">
+  <img src="images/Results_Folds-Synthesis.png" width="1000"/>
+</p>
 
-## Pelvis Dataset
+## Segmentation Results
 
-*Insert Fold-wise Results Table*
+<p align="center">
+  <img src="images/Results_Folds-Segmentation.png" width="1000"/>
+</p>
 
 ---
 
