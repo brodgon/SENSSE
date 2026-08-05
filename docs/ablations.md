@@ -164,6 +164,10 @@ This represents the strongest regularization setting investigated. At this level
   <img src="images/Ablations_2-RegularizationResults.png" width="1000"/>
 </p>
 
+<p align="center">
+  <img src="images/Ablations_2-RegularizationTrajectories.png" width="1000"/>
+</p>
+
 The results reveal that evidential regularization has a substantial impact on both synthesis and segmentation performance. While the regularization term is applied exclusively to the synthesis objective, changes in synthesis behavior propagate through the multitask framework and ultimately influence segmentation quality as well.
 
 The absence of regularization ($\eta=0$) already produces competitive results, indicating that the NIG formulation can successfully learn meaningful reconstructions without additional constraints. However, introducing a moderate regularization term consistently improves overall performance. In particular, the manuscript configuration ($\eta=10^{-3}$) achieves the most balanced behavior across datasets, ranking among the best configurations for both synthesis and segmentation metrics.
@@ -177,7 +181,3 @@ Increasing the regularization strength further ($\eta=10^{-2}$) results in a sli
 Finally, the strongest regularization setting ($\eta=10^{-1}$) consistently degrades performance. Excessive penalization encourages the model to remain overly conservative and prevents effective fitting of the target intensity distribution. Since segmentation relies on information propagated from the synthesis branch, reduced synthesis quality also negatively impacts anatomical delineation.
 
 Overall, the results demonstrate that evidential regularization constitutes a critical component of SENSSE. Moderate values improve both predictive performance and uncertainty behavior, whereas insufficient or excessive regularization can hinder optimization. The selected manuscript configuration ($\eta=10^{-3}$) provides the most favorable compromise between synthesis accuracy, segmentation performance, and uncertainty-aware learning.
-
-*TODO: Insert Image*
-
-Qualitative results further support these observations. Models trained with little or no regularization tend to produce uncertainty maps that are less correlated with reconstruction errors, whereas excessively regularized models generate overly diffuse uncertainty estimates together with smoother image predictions. In contrast, the manuscript configuration produces uncertainty distributions that better align with reconstruction errors while preserving anatomical detail and image quality, highlighting the importance of appropriately balancing predictive accuracy and evidential constraints.
