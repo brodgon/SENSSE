@@ -1,129 +1,52 @@
-# Technical Details
+<h1 align="center">SENSSE formulation</h1>
 
-This document provides a detailed description of the SENSSE framework, including architectural design choices, evidential learning formulations, uncertainty quantification methodology, training objectives, and implementation details.
-
----
-
-# 1. Introduction
-
-SENSSE (Simultaneous Evidential Network for Synthesis and Segmentation) is a multitask deep learning framework designed for adaptive radiotherapy.
-
-The network simultaneously performs:
-
-- Image synthesis
-- Anatomical segmentation
-- Uncertainty quantification
-
-within a single forward pass.
+SENSSE (Simultaneous Evidential Network for Synthesis and Segmentation) is a multitask deep learning framework designed for adaptive radiotherapy. The network simultaneously performs image synthesis, anatomical segmentation and uncertainty quantification of each task within a single forward pass.
 
 Unlike conventional pipelines where synthesis and segmentation are modeled independently, SENSSE jointly optimizes both tasks through shared representations and cross-task interactions.
 
+Let $x \in \mathbb{R}^{H \times W \times K}$ represent an input image stack composed of $K$ neighboring slices. The network simultaneously predicts $\hat y_{syn}$ (synthetic image) and $\hat y_{seg}$ (segmentation map) corresponding to the central slice.
+
 ---
+# Architectural Components
+The model is composed of a shared encoder which extracts anatomical features from the input slices, followed by a bottlencek which bifurcates in two task independent decoders which finalize in evidential output heads.
 
-# 2. Overview
+## Shared Encoder: Feature extraction
 
-Let
+The encoder constitutes the backbone of the SENSSE architecture and is responsible for extracting hierarchical feature representations from the input image. It is shared by both the synthesis and segmentation branches, allowing the network to learn a common feature space that captures anatomical structures, intensity distributions, and contextual information relevant to both tasks.
 
-```math
-x \in \mathbb{R}^{H \times W \times K}
-```
+Structurally, the encoder is composed of a sequence of residual convolutional blocks. Each block contains two 3×3 convolutional layers followed by batch normalization and ReLU activations, together with identity skip connections that facilitate gradient propagation and improve training stability. After each residual block, a max-pooling operation reduces the spatial resolution while increasing the receptive field, enabling the network to progressively capture increasingly abstract representations.
 
-represent an input image stack composed of:
+Formally, given an input image $x \in \mathbb{R}^{H \times W \times K}$, where \(K\) corresponds to the number of input slices, the encoder generates a hierarchy of multi-scale feature maps $F^1, F^2, \ldots, F^L$, with progressively reduced spatial resolution and increased semantic complexity. Early feature maps primarily encode local image characteristics such as edges, textures, and fine anatomical details, whereas deeper representations capture larger anatomical structures and contextual relationships. 
 
-```math
-K
-```
+These feature maps are subsequently used in two ways. First, the deepest representation is forwarded to the bottleneck and decoder branches. Second, intermediate feature maps are preserved through skip connections and later integrated into the decoders using attention-gated fusion mechanisms. By sharing encoder representations across both tasks, SENSSE encourages the learning of complementary anatomical and intensity-based features that support simultaneous image synthesis and segmentation.
 
-neighboring slices.
+---
+## Bottleneck: Shared representation
 
-The network predicts:
+The bottleneck constitutes the deepest layer of the SENSSE architecture. At this point, the network has progressively aggregated contextual information through successive encoder stages, enabling the extraction of high-level anatomical and structural features while reducing sensitivity to local noise and image artifacts.
 
-```math
-\hat y_{syn}
-```
-
-Synthetic image
-
-and
-
-```math
-\hat y_{seg}
-```
-
-Segmentation map
-
-corresponding to the central slice.
+Formally, the bottleneck receives the deepest encoder representation and produces a latent feature map, $F_B$, which acts as a shared representation for both synthesis and segmentation tasks. Unlike task-specific feature extraction schemes, SENSSE employs a common bottleneck that allows both decoders to access the same global anatomical context, encouraging the learning of complementary representations that are simultaneously informative for image synthesis and organ delineation. The bottleneck output is subsequently provided to both decoder branches.
 
 ---
 
-# 3. Architecture
+## Decoders
 
-The architecture is composed of:
+SENSSE employs two parallel decoder branches. The decoder architecture follows the general philosophy of U-Net-like models, combining semantic information extracted at deep layers with fine anatomical details recovered through skip connections. To improve feature selection and spatial localization, skip connections are filtered using attention gates before being fused into the reconstruction pathway.
 
-1. Shared encoder
-2. Bottleneck
-3. Synthesis decoder
-4. Segmentation decoder
-5. Evidential output heads
+The two decoder branches are structurally similar but serve different objectives. The synthesis decoder focuses on recovering anatomically consistent intensity information for synthetic image generation, whereas the segmentation decoder emphasizes structural delineation. To exploit the complementary nature of these tasks, SENSSE introduces explicit decoder interaction mechanisms that enable information exchange between synthesis and segmentation pathways during feature reconstruction.
 
----
+### Decoder Reconstruction
 
-# 4. Shared Encoder
+Starting from the bottleneck representation $F_B$, each decoder progressively increases the spatial resolution through a sequence of upsampling operations. At each reconstruction stage, decoder features are combined with the corresponding encoder representations through attention-gated skip connections, allowing the network to recover fine anatomical details that may have been lost during downsampling.
 
-The encoder consists of residual convolutional blocks.
+Let $F_{dec}^{(i+1)}$ represent decoder features at level \(i+1\). After upsampling, these features are merged with filtered encoder representations originating from the corresponding encoder stage, yielding the reconstructed decoder feature map $F_{dec}^{(i)}$. Through this hierarchical reconstruction process, the decoder gradually transforms highly abstract latent features into anatomically meaningful high-resolution representations suitable for image synthesis and segmentation.
 
-Each block contains:
 
-- Two 3×3 convolutions
-- Batch normalization
-- ReLU activations
-- Identity skip connections
+### Attention-Gated Skip Connections
 
-The encoder progressively extracts:
+To improve spatial localization and reduce the propagation of irrelevant information, SENSSE employs attention-gated skip connections instead of directly concatenating encoder and decoder features.
 
-```math
-F^1,F^2,\ldots,F^L
-```
-
-multi-scale feature maps.
-
-These representations are shared across both tasks.
-
----
-
-# 5. Bottleneck
-
-The bottleneck represents the lowest spatial resolution and highest semantic abstraction level.
-
-No downsampling is applied.
-
-The bottleneck output
-
-```math
-F_B
-```
-
-is simultaneously provided to both decoders.
-
----
-
-# 6. Attention-Gated Skip Connections
-
-To improve spatial localization, skip connections are filtered through attention gates.
-
-Given encoder features:
-
-```math
-x
-```
-
-and decoder context:
-
-```math
-g
-```
-
-attention coefficients are computed as
+Given encoder feature maps $x$ and decoder context features $g$, attention coefficients are computed as
 
 ```math
 \psi
@@ -135,59 +58,35 @@ W_x x
 W_g g
 +
 b
-)
+),
 ```
 
 where:
 
-- σ denotes the sigmoid activation function
-- \(W_x\) and \(W_g\) represent learnable linear projections
+- \(W_x\) and \(W_g\) denote learnable linear projections,
+- \(b\) is a bias term,
+- \(\sigma(\cdot)\) represents the sigmoid activation function.
 
-The filtered skip connection is
+The resulting attention coefficients act as a soft spatial mask identifying encoder regions that are most relevant to the current decoding context. The gated feature representation is then obtained through element-wise multiplication,
 
 ```math
 x'
 =
-\psi \odot x
+\psi \odot x,
 ```
 
-where
+where &\odot& denotes element-wise multiplication.
 
-```math
-\odot
-```
+The filtered representation is subsequently merged with the upsampled decoder features, allowing the reconstruction process to focus on anatomically relevant structures while suppressing noisy or redundant activations. This mechanism improves localization accuracy and contributes to more precise boundaries in both synthetic images and segmentation outputs.
 
-denotes element-wise multiplication.
 
----
+### Decoder Interaction Mechanism
 
-# 7. Decoder Interaction Mechanism
+A key component of SENSSE is the explicit interaction between the synthesis and segmentation decoders. Unlike conventional multitask architectures, where information sharing is restricted to a common encoder and the reconstruction pathways remain independent, SENSSE enables feature exchange during decoding. This design is motivated by the observation that image synthesis and segmentation are intrinsically related tasks in adaptive radiotherapy and can therefore benefit from complementary information learned by one another.
 
-A key contribution of SENSSE is the explicit interaction between synthesis and segmentation tasks.
+The synthesis branch is responsible for reconstructing anatomically consistent image intensities, whereas the segmentation branch focuses on identifying and delineating anatomical structures. As synthesized image features contain rich tissue-specific intensity information, these representations can provide valuable contextual cues to improve segmentation accuracy. Consequently, SENSSE adopts a Synthesis-to-Segmentation (Syn2Seg) interaction strategy, in which features learned by the synthesis decoder are transferred to the segmentation branch at multiple reconstruction stages.
 
-At each decoder level, synthesis feature maps are transferred to the segmentation decoder.
-
-Let:
-
-```math
-F_{syn}^{(i)}
-```
-
-and
-
-```math
-F_{seg}^{(i)}
-```
-
-be the synthesis and segmentation feature maps at scale
-
-```math
-i
-```
-
-respectively.
-
-Features are fused as
+Let $F_{syn}^{(i)}$ and $F_{seg}^{(i)}$ denote the synthesis and segmentation feature maps at decoder level \(i\), respectively. At each reconstruction stage, synthesis features are concatenated with the corresponding segmentation representations and projected into a common feature space through a learnable \(1\times1\) convolution,
 
 ```math
 F_{fusion}^{(i)}
@@ -197,18 +96,16 @@ Conv_{1\times1}
 F_{seg}^{(i)}
 \oplus
 F_{syn}^{(i)}
-\Big)
+\Big),
 ```
 
-where
+where $\oplus$ denotes channel-wise concatenation and $Conv_{1\times1}$ corresponds to a learnable projection layer.
 
-```math
-\oplus
-```
+The resulting fused representation combines anatomical information extracted by the segmentation pathway with complementary intensity information generated by the synthesis branch. This interaction is applied independently at every decoder scale, enabling the segmentation decoder to exploit synthesis-derived information across multiple spatial resolutions. At shallow decoder levels, transferred features provide fine-grained local intensity patterns, whereas deeper layers contribute broader anatomical and contextual information.
 
-denotes channel concatenation.
+By continuously enriching segmentation features with synthesis representations, the model promotes more accurate anatomical delineation and improved structural consistency between synthesized images and segmentation outputs. This strategy explicitly exploits the complementary nature of both tasks while maintaining a unified multitask learning framework.
 
-This interaction promotes anatomical consistency between both tasks.
+Although the configuration adopted in this work corresponds to the Syn2Seg interaction mechanism, the SENSSE framework also supports alternative interaction strategies, including independent decoders, Segmentation-to-Synthesis (Seg2Syn), and bidirectional feature exchange. These variants are described and evaluated separately in the ablation studies.
 
 ---
 
