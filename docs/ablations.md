@@ -46,7 +46,9 @@ SENSSE represents the complete proposed framework
 
 ## Results
 
-- TODO: Insert Table
+<p align="center">
+  <img src="images/Ablations_0-ComponentResults.png" width="1000"/>
+</p>
 
 SENSSE framework provides the most balanced performance across image synthesis and segmentation tasks. While single-task models achieve competitive results within their respective domains, jointly learning both tasks enables the model to exploit complementary information and improve overall performance. Furthermore, the comparison between Multitask, SENSSE-noCE and the full SENSSE configuration highlights the contribution of uncertainty-aware learning and auxiliary supervision to the final performance.
 
@@ -94,7 +96,9 @@ Information is exchanged simultaneously in both directions, allowing synthesis a
 
 ## Results
 
-*TODO: Insert Table*
+<p align="center">
+  <img src="images/Ablations_1-ConnectionsResults.png" width="1000"/>
+</p>
 
 The introduction of decoder interactions consistently improves performance compared with completely independent decoders, confirming that synthesis and segmentation benefit from information exchange during reconstruction. The absence of interactions results in the lowest performance in almost all metrics across both datasets, demonstrating that simply sharing encoder representations is insufficient to fully exploit the complementary nature of both tasks.
 
@@ -152,7 +156,9 @@ This represents the strongest regularization setting investigated. At this level
 
 ## Results
 
-*TODO: Insert Table*
+<p align="center">
+  <img src="images/Ablations_2-RegularizationResults.png" width="1000"/>
+</p>
 
 The results reveal that evidential regularization has a substantial impact on both synthesis and segmentation performance. While the regularization term is applied exclusively to the synthesis objective, changes in synthesis behavior propagate through the multitask framework and ultimately influence segmentation quality as well.
 
