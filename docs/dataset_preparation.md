@@ -1,4 +1,4 @@
-# Dataset Preparation
+<h1 align="center">Dataset Preparation</h1>
 
 This document describes the recommended dataset structure and preprocessing steps required to train and evaluate SENSSE.
 
