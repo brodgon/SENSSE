@@ -6,13 +6,7 @@ This document describes all evaluation metrics used to assess image synthesis, s
 
 # 1. Notation
 
-Let:
-
-```math
-y
-```
-
-denote the ground-truth value.
+Let ```math y``` denote the ground-truth value.
 
 ```math
 \hat y
