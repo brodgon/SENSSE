@@ -1,44 +1,15 @@
-# Metrics
+# Evaluation Metrics
 
-This document describes all evaluation metrics used to assess image synthesis, segmentation performance, uncertainty quality, calibration, and reliability within the SENSSE framework.
+SENSSE is a multitask framework designed for image synthesis and segmentation, while simultaneously providing uncertainty quantification for both tasks. Due to the different nature of these objectives, synthesis, segmentation and uncertainty estimation are evaluated independently using task-specific standard metrics.
 
----
-
-# 1. Notation
-
-Let $y$ denote the ground-truth value.
-
-```math
-\hat y
-```
-
-denote the predicted value.
-
-```math
-N
-```
-
-represent the number of evaluated voxels.
-
-For segmentation:
-
-```math
-A
-```
-
-denotes the set of voxels belonging to the ground-truth structure.
-
-```math
-B
-```
-
-denotes the set of voxels predicted by the model.
+Let $y$ denote the ground-truth value, $\hat y denote the predicted value amd $N$ represent the number of evaluated voxels. For segmentation, $A$ denotes the set of voxels belonging to the ground-truth structure while $B$ denotes the set of voxels predicted by the model.
 
 ---
 
-# 2. Image Synthesis Metrics
+# 1. Evaluating synthetic images quality
+Image synthesis performance is evaluated in terms of intensity accuracy and anatomical fidelity between the synthesized image and the reference image. Metrics are used to quantify voxel-wise reconstruction errors, global image quality and structural similarity. Four metrics were employed.
 
-## 2.1 Mean Absolute Error (MAE)
+## Mean Absolute Error (MAE)
 
 MAE measures the average absolute error between synthesized and reference images.
 
@@ -54,25 +25,7 @@ Lower values indicate better image fidelity.
 
 ---
 
-## 2.2 Root Mean Squared Error (RMSE)
-
-RMSE penalizes larger reconstruction errors more heavily than MAE.
-
-```math
-RMSE
-=
-\sqrt{
-\frac{1}{N}
-\sum_{i=1}^{N}
-(y_i-\hat y_i)^2
-}
-```
-
-Lower values indicate better performance.
-
----
-
-## 2.3 Peak Signal-to-Noise Ratio (PSNR)
+## Peak Signal to Noise Ratio (PSNR)
 
 PSNR quantifies image reconstruction quality relative to the maximum intensity value.
 
@@ -102,9 +55,9 @@ Higher values indicate better reconstruction quality.
 
 ---
 
-## 2.4 Structural Similarity Index (SSIM)
+## Structural Similarity Index (SSIM)
 
-SSIM evaluates image similarity considering luminance, contrast, and structural information.
+SSIM evaluates image similarity considering luminance, contrast and structural information.
 
 ```math
 SSIM(x,y)
@@ -124,23 +77,9 @@ where:
 - σ denotes standard deviation
 - σxy denotes covariance
 
-SSIM ranges from:
+SSIM ranges from $[-1,1]$ with $1$ representing perfect correspondence.
 
-```math
-[-1,1]
-```
-
-with
-
-```math
-1
-```
-
-representing perfect correspondence.
-
----
-
-## 2.5 Multi-Scale SSIM (MS-SSIM)
+### Multi-Scale SSIM (MS-SSIM)
 
 MS-SSIM extends SSIM by computing similarity at multiple image resolutions.
 
@@ -151,33 +90,20 @@ MS\text{-}SSIM
 SSIM_m^{\alpha_m}
 ```
 
-where
-
-```math
-M
-```
-
-denotes the number of scales.
-
-Higher values indicate higher structural similarity.
+where $M$ denotes the number of scales. Higher values indicate higher structural similarity.
 
 ---
 
-## 2.6 Dice HU > 300
+## Anatomical Similarity
 
-To assess anatomical consistency of high-density structures, binary masks are created by thresholding CT volumes at:
-
-```math
-300 HU
-```
-
-The overlap between reference and synthesized masks is computed via Dice Similarity Coefficient.
+To assess anatomical consistency of high-density structures, binary masks are created by thresholding CT volumes at $300HU$. The overlap between reference and synthesized masks is computed via Dice Similarity Coefficient.
 
 ---
 
-# 3. Segmentation Metrics
+# Evaluating Organ's Segmentation
+Segmentation performance is assessed by comparing the overlap and boundary agreement between predicted structures and their corresponding ground-truth annotations. These metrics quantify both volumetric agreement and contour accuracy.
 
-## 3.1 Dice Similarity Coefficient (DSC)
+## Dice Similarity Coefficient (DSC)
 
 DSC measures overlap between predicted and ground-truth segmentations.
 
@@ -191,27 +117,10 @@ DSC
 }
 ```
 
-Values range from:
-
-```math
-0
-```
-
-(no overlap)
-
-to
-
-```math
-1
-```
-
-(perfect overlap).
-
-Higher values are better.
-
+Values range from $0$ (no overlap) to $1$ (perfect overlap).
 ---
 
-## 3.2 Hausdorff Distance (HD)
+## Hausdorff Distance (HD)
 
 Hausdorff Distance measures the largest surface discrepancy between segmentations.
 
@@ -227,29 +136,9 @@ d(b,A)
 \Big)
 ```
 
-where
+where $d(a,B)$ denotes the minimum Euclidean distance from point $a$ to set $B$.
 
-```math
-d(a,B)
-```
-
-denotes the minimum Euclidean distance from point
-
-```math
-a
-```
-
-to set
-
-```math
-B
-```
-
----
-
-## 3.3 95th Percentile Hausdorff Distance (HD95)
-
-Because HD is sensitive to outliers, HD95 is often preferred.
+Howwever, this metric is highly sensitive to outliers, therefore HD95 is often preferred, defined as:
 
 ```math
 HD95
@@ -259,11 +148,9 @@ HD95
 \ of \ surface \ distances
 ```
 
-Lower values indicate better boundary agreement.
-
 ---
 
-## 3.4 Mean Surface Distance (MSD)
+## Mean Surface Distance (MSD)
 
 MSD measures the average distance between segmentation surfaces.
 
@@ -279,41 +166,23 @@ MSD
 d(a,S_B)
 ```
 
-where:
+where $S_A$ and $S_B$ represent segmentation surfaces. Lower values indicate better performance.
 
-```math
-S_A
-```
+---
+# Evaluating Uncertainty Estimates Quality
+Uncertainty quantification is a fundamental component of SENSSE, as it provides information about the confidence and reliability of model predictions. Beyond predictive performance alone, uncertainty estimates are expected to identify regions where the model is more likely to make errors, thereby supporting risk-aware decision making and quality assurance in adaptive radiotherapy workflows.
 
-and
+The quality of the uncertainty estimates is evaluated from three complementary perspectives. Calibration metrics assess whether predicted confidence values are statistically consistent with observed accuracy. Probabilistic metrics evaluate the quality of the predictive distributions generated by the model. Finally, reliability metrics measure the degree to which uncertainty values correlate with prediction errors, indicating whether uncertainty estimates are informative and clinically meaningful.
 
-```math
-S_B
-```
+## Calibration Metrics
 
-represent segmentation surfaces.
-
-Lower values indicate better performance.
+Calibration metrics evaluate whether the confidence estimates produced by the model accurately reflect the true likelihood of a prediction being correct. Well-calibrated models assign high confidence to correct predictions and low confidence to uncertain or incorrect predictions.
 
 ---
 
-# 4. Calibration Metrics
+### Expected Calibration Error (ECE)
 
-Calibration evaluates whether confidence values correspond to actual accuracy.
-
----
-
-## 4.1 Expected Calibration Error (ECE)
-
-Predictions are grouped into
-
-```math
-M
-```
-
-confidence bins.
-
-ECE is computed as:
+Predictions are grouped into $M$ confidence bins. ECE is computed as:
 
 ```math
 ECE
@@ -334,30 +203,12 @@ Lower values indicate better calibration.
 
 ---
 
-## 4.2 Maximum Calibration Error (MCE)
+## Probabilistic Metrics
+Probabilistic metrics assess the quality of the predictive distributions generated by the model. These metrics simultaneously evaluate prediction accuracy and the reliability of predicted probabilities.
 
-MCE measures the largest calibration mismatch.
+### Negative Log-Likelihood (NLL)
 
-```math
-MCE
-=
-\max_m
-\left|
-acc(B_m)-conf(B_m)
-\right|
-```
-
-Lower values are preferred.
-
----
-
-# 5. Probabilistic Metrics
-
-## 5.1 Negative Log-Likelihood (NLL)
-
-NLL evaluates the probability assigned to the correct outcome.
-
-For classification:
+NLL evaluates the probability assigned to the correct outcome. For classification:
 
 ```math
 NLL
@@ -374,7 +225,7 @@ Lower values indicate better calibrated probabilistic predictions.
 
 ---
 
-## 5.2 Brier Score
+### Brier Score
 
 The Brier Score measures the squared error between probabilities and labels.
 
@@ -391,33 +242,15 @@ Lower values are better.
 
 ---
 
-# 6. Reliability Metrics
+## Reliability Metrics
 
-Reliability metrics evaluate whether uncertainty correctly identifies prediction errors.
+Reliability metrics measure the relationship between uncertainty estimates and prediction errors. An effective uncertainty estimation framework should assign high uncertainty to regions where the model is more likely to make mistakes.
 
 ---
 
-## 6.1 Uncertainty-Error Overlap (UEO)
+### Uncertainty-Error Overlap (UEO)
 
-UEO quantifies overlap between regions of high uncertainty and high prediction error.
-
-Let:
-
-```math
-U
-```
-
-be the set of voxels above a selected uncertainty percentile.
-
-Let:
-
-```math
-E
-```
-
-be the set of voxels above an error percentile.
-
-Then:
+UEO quantifies overlap between regions of high uncertainty and high prediction error. Let $U$ be the set of voxels above a selected uncertainty percentile. Let $E$ be the set of voxels above an error percentile. Then:
 
 ```math
 UEO
@@ -433,57 +266,10 @@ Higher values indicate uncertainty is concentrated in error-prone regions.
 
 ---
 
-## 6.2 Area Under Sparsification Error (AUSE)
+## Correlation Metrics
+Correlation metrics quantify the statistical association between uncertainty estimates and prediction errors. Strong positive correlations indicate that uncertainty increases consistently with prediction difficulty, suggesting meaningful and informative uncertainty estimates.
 
-AUSE evaluates how prediction error decreases as uncertain predictions are progressively removed.
-
-Let:
-
-```math
-R(k)
-```
-
-be the residual error after removing the
-
-```math
-k
-```
-
-most uncertain predictions.
-
-Then:
-
-```math
-AUSE
-=
-\int
-R(k)
-dk
-```
-
-Lower values indicate better uncertainty ranking.
-
----
-
-## 6.3 Area Under Risk-Coverage Curve (AURC)
-
-Risk-Coverage analysis examines the trade-off between retained predictions and error.
-
-```math
-AURC
-=
-\int
-Risk(Coverage)
-\,dCoverage
-```
-
-Lower values indicate better uncertainty quality.
-
----
-
-# 7. Correlation Metrics
-
-## 7.1 Pearson Correlation Coefficient
+### Pearson Correlation Coefficient
 
 Pearson correlation evaluates linear association between uncertainty and prediction error.
 
@@ -497,23 +283,11 @@ Cov(U,E)
 }
 ```
 
-Values range from:
-
-```math
--1
-```
-
-to
-
-```math
-1
-```
-
-Higher positive values indicate uncertainty increases with prediction error.
+Values range from $-1$ to $1$. Higher positive values indicate uncertainty increases with prediction error.
 
 ---
 
-## 7.2 Spearman Rank Correlation
+### Spearman Rank Correlation
 
 Spearman correlation evaluates monotonic relationships.
 
@@ -529,39 +303,7 @@ n(n^2-1)
 }
 ```
 
-where:
-
-```math
-d_i
-```
-
-represents rank differences.
-
-Higher values indicate stronger correspondence between uncertainty and error.
-
----
-
-# 8. Interpretation Guide
-
-| Metric | Direction |
-|----------|-----------|
-| MAE | ↓ Lower better |
-| RMSE | ↓ Lower better |
-| PSNR | ↑ Higher better |
-| SSIM | ↑ Higher better |
-| MS-SSIM | ↑ Higher better |
-| Dice | ↑ Higher better |
-| HD95 | ↓ Lower better |
-| MSD | ↓ Lower better |
-| ECE | ↓ Lower better |
-| MCE | ↓ Lower better |
-| NLL | ↓ Lower better |
-| Brier | ↓ Lower better |
-| UEO | ↑ Higher better |
-| AUSE | ↓ Lower better |
-| AURC | ↓ Lower better |
-| Pearson | ↑ Higher better |
-| Spearman | ↑ Higher better |
+where $d_i$ represents rank differences. Higher values indicate stronger correspondence between uncertainty and error.
 
 ---
 
