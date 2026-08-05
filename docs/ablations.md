@@ -112,7 +112,9 @@ Interestingly, the Bidirectional configuration achieves the lowest synthesis err
 
 Overall, the results indicate that decoder interactions are beneficial, but the direction of information transfer plays an important role. Transferring synthesis features towards the segmentation branch provides the most consistent improvements across datasets and tasks, supporting the design choice adopted in the final SENSSE architecture.
 
-*TODO: Insert Image*
+<p align="center">
+  <img src="images/Ablations_1-ConnectionsQualitative.png" width="1000"/>
+</p>
 
 Qualitative examples further illustrate these findings. Compared with independent decoders, interaction-based models produce segmentations with improved anatomical consistency and more accurate boundary delineation. In particular, the Syn2Seg configuration generates cleaner contours in regions with low soft-tissue contrast, suggesting that synthesis-derived intensity information helps the model identify challenging anatomical transitions. At the same time, synthesized images maintain realistic tissue appearance and anatomical consistency, confirming that decoder interactions can improve segmentation performance without compromising image reconstruction quality.
 
