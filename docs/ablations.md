@@ -21,6 +21,11 @@ To investigate these questions, we compare the full SENSSE framework against a s
 
 ## Evaluated Models
 
+<p align="center">
+  <img src="docs/images/Ablations_0-ComponentArchitecture.png" width="1000"/>
+</p>
+
+
 ### Syn-EDL
 This model isolates the image synthesis task by removing the segmentation branch and training the network exclusively for synthetic image generation supported by evidential deep learning. The objective of this experiment is to establish a synthesis-only baseline and evaluate the extent to which image reconstruction benefits from the multitask framework proposed in SENSSE. 
 
