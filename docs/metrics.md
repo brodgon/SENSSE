@@ -1,4 +1,4 @@
-# Evaluation Metrics
+<h1 align="center">Evaluation Metrics</h1>
 
 SENSSE is a multitask framework designed for image synthesis and segmentation, while simultaneously providing uncertainty quantification for both tasks. Due to the different nature of these objectives, synthesis, segmentation and uncertainty estimation are evaluated independently using task-specific standard metrics.
 
