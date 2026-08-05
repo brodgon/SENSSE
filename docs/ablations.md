@@ -22,7 +22,7 @@ To investigate these questions, we compare the full SENSSE framework against a s
 ## Evaluated Models
 
 <p align="center">
-  <img src="docs/images/Ablations_0-ComponentArchitecture.png" width="1000"/>
+  <img src="images/Ablations_0-ComponentArchitecture.png" width="1000"/>
 </p>
 
 
