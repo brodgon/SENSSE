@@ -39,485 +39,126 @@ SENSSE represents the complete proposed framework
 
 ---
 
-## Quantitative Results
+## Results
 
-```{=latex}
+- TODO: Insert Table
 
-\begin{table*}
-\caption{Ablation studies evaluating architectural components, decoder interactions and synthesis evidential regularization.}
-\label{tab:ablation_results}
-\small \centering \begin{tabular}{c|ccc|ccc}
-\hline \multirow{2}{*}{\textbf{Model}} & \multicolumn{3}{c|}{\textbf{Head \& Neck}} & \multicolumn{3}{c}{\textbf{Pelvis}} \\
-\cline{2-7} & \textbf{MAE(HU)$\downarrow$} & \textbf{Dice$_{\mathrm{HU>300}}$$\uparrow$} & \textbf{DSC$\uparrow$} & \textbf{MAE(HU)$\downarrow$} & \textbf{Dice$_{\mathrm{HU>300}}$$\uparrow$} & \textbf{DSC$\uparrow$} \\ 
-\hline\hline
-\multicolumn{7}{c}{\textbf{A) Component Ablation}}\\ 
-\hline
-Syn-EDL & \cellcolor[HTML]{DCF5F2}{\textbf{44.8077 $\pm$ 9.7229}}  & 0.8976 $\pm$ 0.0509 & -- & 33.2246 $\pm$ 7.8606 & 0.8816 $\pm$ 0.0771 & -- \\ 
-Seg-EDL & -- & -- & 0.5918 $\pm$ 0.3497 & -- & -- & \cellcolor[HTML]{DCF5F2}{\textbf{0.9261 $\pm$ 0.2723}} \\
-Multitask & 48.8613 $\pm$ 9.7413 & 0.8712 $\pm$ 0.0599 & 0.5609 $\pm$ 0.3305 & 35.7525 $\pm$ 6.1784 & 0.8795 $\pm$ 0.0651 & 0.9012 $\pm$ 0.1823 \\
-SENSSE-noCE & 46.9852 $\pm$ 9.8133 & 0.8653 $\pm$ 0.0654 & 0.6356 $\pm$ 0.2974 & 30.2214 $\pm$ 7.5586 & 0.8772 $\pm$ 0.0705 & 0.8974 $\pm$ 0.3114 \\
-SENSSE & 46.8729 $\pm$ 8.0024 & \cellcolor[HTML]{DCF5F2}{\textbf{0.9003 $\pm$ 0.0744}} & \cellcolor[HTML]{DCF5F2}{\textbf{0.6889 $\pm$ 0.1752}} & \cellcolor[HTML]{DCF5F2}{\textbf{26.1256 $\pm$ 6.1239}} & \cellcolor[HTML]{DCF5F2}{\textbf{0.8979 $\pm$ 0.0624}} & 0.9164 $\pm$ 0.2275 \\
-\hline\hline
-\end{table*}
-```
+SENSSE framework provides the most balanced performance across image synthesis and segmentation tasks. While single-task models achieve competitive results within their respective domains, jointly learning both tasks enables the model to exploit complementary information and improve overall performance. Furthermore, the comparison between Multitask, SENSSE-noCE and the full SENSSE configuration highlights the contribution of uncertainty-aware learning and auxiliary supervision to the final performance.
+
+- TODO: Insert Image
+- 
+Qualitative examples further illustrate the benefits of joint learning. Compared with simpler architectures, SENSSE produces synthetic images with improved anatomical consistency while simultaneously generating more accurate segmentation masks, particularly in challenging regions exhibiting low tissue contrast or complex anatomical boundaries.
+
 ---
-75
- 
-76
-## Qualitative Analysis
-77
- 
-78
-The following qualitative comparisons are recommended:
-79
- 
-80
-### Figure A1
-81
- 
-82
-Representative synthesis results.
-83
- 
-84
-Display:
-85
- 
-86
-```text
-87
-CBCT
-88
-Ground-truth CT
-89
-Syn-EDL
-90
-Multitask
-91
-SENSSE
-92
-Error map
-93
-```
-94
- 
-95
-This figure highlights the effect of multitask learning and evidential optimization on image reconstruction quality.
-96
- 
-97
-### Figure A2
-98
- 
-99
-Representative segmentation results.
-100
- 
-101
-Display:
-102
- 
-103
-```text
-104
-Ground-truth
-105
-Seg-EDL
-106
-Multitask
-107
-SENSSE
-108
-```
-109
- 
-110
-Overlay contours on challenging anatomical regions.
-111
- 
-112
----
-113
- 
-114
+
 # Connection Ablation
-115
- 
-116
-## Motivation
-117
- 
-118
-A central hypothesis of SENSSE is that image synthesis and segmentation can benefit from exchanging information during feature reconstruction. To evaluate this hypothesis, different decoder interaction mechanisms are investigated.
-119
- 
-120
-The objective of this study is to determine whether synthesis-guided segmentation, segmentation-guided synthesis, or bidirectional information exchange is most beneficial for adaptive radiotherapy applications.
-121
- 
-122
----
-123
- 
-124
+A central hypothesis of SENSSE is that image synthesis and segmentation are complementary tasks that can benefit from exchanging information during feature reconstruction. While both branches already share encoder representations, the proposed architecture further enables feature transfer at the decoder level, allowing task-specific information to be propagated between reconstruction pathways.
+
+The purpose of this ablation study is to investigate the effect of different decoder interaction strategies and determine whether information exchange improves performance compared with completely independent decoders. In particular, this experiment aims to answer the following questions:
+
+- Does feature sharing during decoding improve synthesis and segmentation performance?
+- Is synthesis more useful for segmentation than segmentation is for synthesis?
+- Does bidirectional information exchange provide additional benefits?
+- Which interaction strategy achieves the best balance between both tasks?
+
+To answer these questions, four interaction configurations were evaluated.
+
 ## Evaluated Interaction Strategies
-125
- 
-126
+
 ### None
-127
- 
-128
-The synthesis and segmentation decoders operate independently after the shared encoder.
-129
- 
-130
-No information exchange is performed.
-131
- 
-132
-This configuration serves as the interaction-free baseline.
-133
- 
-134
-### Syn→Seg
-135
- 
-136
-Features from the synthesis decoder are transferred to the segmentation decoder.
-137
- 
-138
-This configuration reflects the primary hypothesis of SENSSE, namely that intensity-related information can improve anatomical delineation.
-139
- 
-140
-### Seg→Syn
-141
- 
-142
-Features from the segmentation decoder are transferred to the synthesis decoder.
-143
- 
-144
-This experiment evaluates whether anatomical information can improve synthetic image reconstruction.
-145
- 
-146
+
+In this configuration, the synthesis and segmentation decoders operate completely independently after the shared encoder. Although both tasks benefit from common encoder representations, no information is exchanged during reconstruction. This experiment serves as the baseline against which all interaction mechanisms are compared.
+
+### Syn2Seg
+
+Feature maps generated by the synthesis decoder are transferred to the segmentation branch at each decoder level. The underlying hypothesis is that intensity-related information learned during image reconstruction can facilitate anatomical delineation by providing additional contextual information regarding tissue appearance and boundaries.
+
+### Seg2Syn
+
+Feature maps generated by the segmentation decoder are transferred to the synthesis branch. This experiment evaluates whether structural and anatomical information can guide image reconstruction and improve the anatomical consistency of synthesized images.
+
 ### Bidirectional
-147
- 
-148
-Feature exchange occurs in both directions.
-149
- 
-150
-This configuration enables maximum interaction between tasks.
-151
- 
-152
+
+Information is exchanged simultaneously in both directions, allowing synthesis and segmentation to continuously interact throughout the decoding process. This configuration investigates whether maximal feature sharing further enhances performance or introduces competition between tasks.
+
 ---
-153
- 
-154
-## Quantitative Results
-155
- 
-156
-*Insert Table B here*
-157
- 
-158
----
-159
- 
-160
-## Methodological Figure
-161
- 
-162
-### Figure B1
-163
- 
-164
-Illustration of decoder interaction mechanisms.
-165
- 
-166
-Display:
-167
- 
-168
-```text
-169
-None
-170
- 
-171
-Syn → Seg
-172
- 
-173
-Seg → Syn
-174
- 
-175
-Bidirectional
-176
-```
-177
- 
-178
-using schematic arrows between decoder branches.
-179
- 
-180
----
-181
- 
-182
-## Qualitative Analysis
-183
- 
-184
-### Figure B2
-185
- 
-186
-Representative Head & Neck example.
-187
- 
-188
-Display:
-189
- 
-190
-```text
-191
-Ground-truth CT
-192
-None
-193
-Syn→Seg
-194
-Seg→Syn
-195
-Bidirectional
-196
-```
-197
- 
-198
-alongside corresponding segmentation masks.
-199
- 
-200
-### Figure B3
-201
- 
-202
-Uncertainty comparison across interaction strategies.
-203
- 
-204
-Display:
-205
- 
-206
-```text
-207
-Prediction
-208
-Error map
-209
-Uncertainty map
-210
-```
-211
- 
-212
-to assess whether feature interactions influence uncertainty quality.
-213
- 
-214
----
-215
- 
-216
+
+## Results
+
+*TODO: Insert Table*
+
+The introduction of decoder interactions consistently improves performance compared with completely independent decoders, confirming that synthesis and segmentation benefit from information exchange during reconstruction. The absence of interactions results in the lowest performance in almost all metrics across both datasets, demonstrating that simply sharing encoder representations is insufficient to fully exploit the complementary nature of both tasks.
+
+Among all evaluated strategies, the Syn2Seg configuration achieves the most balanced overall performance. For the Head & Neck dataset, it substantially improves segmentation accuracy compared with the interaction-free baseline while simultaneously reducing synthesis error. Similar trends are observed in the Pelvis dataset, where Syn2Seg achieves the highest segmentation performance and one of the lowest synthesis errors. These findings support the central hypothesis of SENSSE, that is, intensity-related information learned during image synthesis provides valuable guidance for anatomical segmentation.
+
+The Seg2Syn strategy also improves performance over the baseline, but the gains are generally smaller than those obtained with Syn2Seg. While anatomical information can assist image reconstruction, segmentation features primarily encode structural information and may not provide sufficient intensity-related detail to substantially improve synthesis quality. Consequently, the resulting improvements are more limited.
+
+Interestingly, the Bidirectional configuration achieves the lowest synthesis error on the Head & Neck dataset, suggesting that anatomical priors can contribute to more accurate image reconstruction. However, these gains are not consistently translated into segmentation performance, and in several cases the bidirectional strategy performs slightly worse than Syn2Seg. A possible explanation is that simultaneous feature exchange in both directions increases optimization complexity and may introduce conflicting task-specific information during reconstruction.
+
+Overall, the results indicate that decoder interactions are beneficial, but the direction of information transfer plays an important role. Transferring synthesis features towards the segmentation branch provides the most consistent improvements across datasets and tasks, supporting the design choice adopted in the final SENSSE architecture.
+
+*TODO: Insert Image*
+
+Qualitative examples further illustrate these findings. Compared with independent decoders, interaction-based models produce segmentations with improved anatomical consistency and more accurate boundary delineation. In particular, the Syn2Seg configuration generates cleaner contours in regions with low soft-tissue contrast, suggesting that synthesis-derived intensity information helps the model identify challenging anatomical transitions. At the same time, synthesized images maintain realistic tissue appearance and anatomical consistency, confirming that decoder interactions can improve segmentation performance without compromising image reconstruction quality.
+
+
 # Regularization Ablation
-217
- 
-218
-## Motivation
-219
- 
-220
-Deep Evidential Regression introduces an evidential regularization term that penalizes unsupported confidence and encourages uncertainty estimates to remain consistent with prediction errors.
-221
- 
-222
-The regularization strength is controlled by the parameter
-223
- 
-224
-```math
-225
-\eta.
-226
-```
-227
- 
-228
-Selecting an appropriate value is essential because insufficient regularization may lead to overconfident predictions, whereas excessive regularization can degrade reconstruction quality.
-229
- 
-230
-The objective of this study is to characterize the influence of evidential regularization on synthesis and segmentation performance.
-231
- 
-232
+
+Deep Evidential Regression incorporates an evidential regularization term that penalizes unsupported confidence and encourages uncertainty estimates to remain consistent with prediction errors. The strength of this regularization is controlled through the parameter $\eta$ which determines the relative influence of the evidential constraint during optimization.
+
+Selecting an appropriate value for this parameter is critical. If regularization is too weak, the network may generate overconfident predictions despite large reconstruction errors. Conversely, excessive regularization may force the model to remain unnecessarily uncertain, potentially degrading synthesis quality and adversely affecting downstream segmentation performance.
+
+The purpose of this ablation study is therefore to investigate the influence of evidential regularization on both tasks and identify an appropriate trade-off between predictive performance and uncertainty awareness. In particular, this experiment aims to answer the following questions:
+
+- Does evidential regularization improve image synthesis quality?
+- How sensitive is the model to the selected regularization strength?
+- Can uncertainty regularization influence segmentation performance despite being applied only to the synthesis branch?
+- Which regularization value provides the most balanced overall behavior?
+
+To answer these questions, multiple values of the evidential regularization coefficient were evaluated.
+
+## Evaluated Configurations
+
+### η = 0
+
+This configuration removes evidential regularization entirely, leaving only the negative log-likelihood objective. As a result, the model is optimized exclusively for reconstruction accuracy without explicitly penalizing overconfident predictions. This experiment serves as the baseline.
+
+### η = 10⁻⁴
+
+A weak evidential constraint is introduced during optimization. This setting investigates whether a small amount of regularization is sufficient to improve uncertainty estimation while preserving reconstruction quality.
+
+### η = 10⁻³
+
+This configuration corresponds to the manuscript setting. It represents a moderate regularization strength designed to balance reconstruction accuracy and uncertainty awareness.
+
+### η = 10⁻²
+
+A stronger evidential penalty is applied, forcing the model to be increasingly conservative in its confidence estimates. This experiment evaluates whether additional regularization further improves robustness or begins to interfere with learning.
+
+### η = 10⁻¹
+
+This represents the strongest regularization setting investigated. At this level, uncertainty constraints dominate optimization and may limit the model's ability to fit the underlying intensity distribution.
+
 ---
-233
- 
-234
-## Evaluated Values
-235
- 
-236
-The following values were investigated:
-237
- 
-238
-```math
-239
-\eta = 0
-240
-```
-241
- 
-242
-```math
-243
-\eta = 10^{-4}
-244
-```
-245
- 
-246
-```math
-247
-\eta = 10^{-3}
-248
-```
-249
- 
-250
-```math
-251
-\eta = 10^{-2}
-252
-```
-253
- 
-254
-```math
-255
-\eta = 10^{-1}
-256
-```
-257
- 
-258
----
-259
- 
-260
-## Quantitative Results
-261
- 
-262
-*Insert Table C here*
-263
- 
-264
----
-265
- 
-266
-## Qualitative Analysis
-267
- 
-268
-### Figure C1
-269
- 
-270
-Synthesis predictions as a function of regularization strength.
-271
- 
-272
-Display:
-273
- 
-274
-```text
-275
-Ground-truth CT
-276
- 
-277
-η = 0
-278
-η = 10^-4
-279
-η = 10^-3
-280
-η = 10^-2
-281
-η = 10^-1
-282
-```
-283
- 
-284
-This comparison illustrates the trade-off between reconstruction fidelity and uncertainty calibration.
-285
- 
-286
-### Figure C2
-287
- 
-288
-Corresponding uncertainty maps.
-289
- 
-290
-Display:
-291
- 
-292
-```text
-293
-Epistemic uncertainty
-294
-Aleatoric uncertainty
-295
-Total uncertainty
-296
-```
-297
- 
-298
-for each regularization value.
-299
- 
-300
----
-301
- 
-302
-## Discussion
-303
- 
-304
-The ablation studies collectively demonstrate the contribution of the main architectural and optimization choices incorporated into SENSSE. Component ablations quantify the benefit of multitask evidential learning, connection ablations evaluate the effect of information exchange between tasks, and regularization ablations characterize the role of evidential constraints in controlling predictive uncertainty. Together, these experiments provide a comprehensive assessment of the design decisions underlying the proposed framework.
+
+## Results
+
+*TODO: Insert Table*
+
+The results reveal that evidential regularization has a substantial impact on both synthesis and segmentation performance. While the regularization term is applied exclusively to the synthesis objective, changes in synthesis behavior propagate through the multitask framework and ultimately influence segmentation quality as well.
+
+The absence of regularization ($\eta=0$) already produces competitive results, indicating that the NIG formulation can successfully learn meaningful reconstructions without additional constraints. However, introducing a moderate regularization term consistently improves overall performance. In particular, the manuscript configuration ($\eta=10^{-3}$) achieves the most balanced behavior across datasets, ranking among the best configurations for both synthesis and segmentation metrics.
+
+Interestingly, very small regularization values ($\eta=10^{-4}$) lead to a noticeable deterioration in synthesis performance. This suggests that weak regularization may be insufficient to effectively constrain unsupported evidence while still perturbing the optimization process. As a consequence, the model does not fully benefit from uncertainty-aware learning.
+
+A moderate regularization strength ($\eta=10^{-3}$) produces the most consistent improvements. At this level, evidential constraints effectively discourage overconfident predictions while preserving the ability of the network to accurately model image intensities. Improved synthesis quality subsequently benefits the segmentation branch through the decoder interaction mechanism, leading to competitive segmentation performance across both datasets.
+
+Increasing the regularization strength further ($\eta=10^{-2}$) results in a slight degradation of reconstruction accuracy. Although uncertainty estimates remain meaningful, the stronger penalty begins to restrict the flexibility of the synthesis model, producing a less favorable balance between accuracy and uncertainty awareness.
+
+Finally, the strongest regularization setting ($\eta=10^{-1}$) consistently degrades performance. Excessive penalization encourages the model to remain overly conservative and prevents effective fitting of the target intensity distribution. Since segmentation relies on information propagated from the synthesis branch, reduced synthesis quality also negatively impacts anatomical delineation.
+
+Overall, the results demonstrate that evidential regularization constitutes a critical component of SENSSE. Moderate values improve both predictive performance and uncertainty behavior, whereas insufficient or excessive regularization can hinder optimization. The selected manuscript configuration ($\eta=10^{-3}$) provides the most favorable compromise between synthesis accuracy, segmentation performance, and uncertainty-aware learning.
+
+*TODO: Insert Image*
+
+Qualitative results further support these observations. Models trained with little or no regularization tend to produce uncertainty maps that are less correlated with reconstruction errors, whereas excessively regularized models generate overly diffuse uncertainty estimates together with smoother image predictions. In contrast, the manuscript configuration produces uncertainty distributions that better align with reconstruction errors while preserving anatomical detail and image quality, highlighting the importance of appropriately balancing predictive accuracy and evidential constraints.
