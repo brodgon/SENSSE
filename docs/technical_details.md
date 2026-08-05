@@ -109,60 +109,54 @@ Although the configuration adopted in this work corresponds to the Syn2Seg inter
 
 ---
 
-# 8. Evidential Image Synthesis
+## Evidential Output Heads
 
-## 8.1 Normal-Inverse-Gamma Distribution
+A fundamental component of SENSSE is its ability to estimate uncertainty jointly with image synthesis and segmentation. Rather than producing only deterministic predictions, both task-specific output heads are designed to infer a predictive distribution from which uncertainty information can be directly derived. This allows SENSSE to provide voxel-wise confidence estimates alongside its primary outputs while maintaining a single forward-pass inference procedure.
 
-The synthesis branch predicts four parameters for every voxel:
+The synthesis and segmentation branches rely on different evidential formulations due to the distinct nature of their prediction targets. Image synthesis is formulated as a continuous regression problem and therefore employs Deep Evidential Regression through a Normal-Inverse-Gamma (NIG) distribution. In contrast, segmentation is treated as a multi-class classification problem and utilizes Evidential Deep Learning (EDL), where class evidence is modeled through a Dirichlet distribution.
+
+## Synthesis Head
+
+The synthesis branch aims to predict a synthetic image together with an estimate of the uncertainty associated with each voxel intensity. Instead of directly regressing a single intensity value, the network predicts the parameters of a NIG distribution,
 
 ```math
-(\mu,\lambda,\alpha,\beta)
+(\mu,\lambda,\alpha,\beta),
 ```
 
-The predictive distribution follows a Normal-Inverse-Gamma (NIG) model:
+which define a probability distribution over possible voxel intensities.
+
+The predictive distribution can therefore be written as
 
 ```math
 p(y)
 =
-NIG(y|\mu,\lambda,\alpha,\beta)
+NIG(y \mid \mu,\lambda,\alpha,\beta),
 ```
 
----
-
-## 8.2 Predictive Mean
-
-The predicted intensity corresponds to:
+where $y$ denotes the target voxel intensity. Within this formulation, the parameter $\mu$ corresponds to the predictive mean and represents the synthesized intensity value, 
 
 ```math
 \mathbb E[y]
 =
-\mu
+\mu.
 ```
 
----
+By predicting an entire evidential distribution instead of a single value, the network can explicitly model uncertainty together with the reconstruction itself.
 
-## 8.3 Predictive Variance
-
-The predictive variance is
+The predictive variance associated with each voxel is given by
 
 ```math
 Var(y)
 =
 \frac{\beta}
-     {\lambda(\alpha-1)}
-\qquad \alpha > 1
+     {\lambda(\alpha-1)},
+\qquad
+\alpha > 1.
 ```
 
-This quantity combines both uncertainty sources:
+This variance captures both intrinsic image ambiguity and model uncertainty. Consequently, uncertainty estimates can be decomposed into aleatoric and epistemic components directly from the predicted NIG parameters without requiring Monte Carlo sampling or ensemble methods.
 
-- Aleatoric uncertainty
-- Epistemic uncertainty
-
----
-
-## 8.4 Negative Log-Likelihood
-
-The NIG negative log-likelihood is
+Training is performed using the Deep Evidential Regression objective. The primary component corresponds to the negative log-likelihood of the NIG distribution,
 
 ```math
 L_{NLL}
@@ -181,27 +175,23 @@ L_{NLL}
 +
 \log\Gamma(\alpha)
 -
-\alpha\log\beta
+\alpha\log\beta.
 ```
 
----
+Minimizing this objective encourages accurate image synthesis while simultaneously learning meaningful predictive uncertainty.
 
-## 8.5 Evidential Regularization
-
-To prevent overconfident predictions:
+A challenge in evidential learning is preventing the model from producing highly confident predictions when large errors are present. To address this issue, an evidential regularization term is incorporated,
 
 ```math
 R_{evid}
 =
 |\mu-y|
-(2\alpha+\lambda)
+(2\alpha+\lambda),
 ```
 
----
+which penalizes unsupported confidence and encourages uncertainty to increase whenever reconstruction errors become large.
 
-## 8.6 Synthesis Loss
-
-The final synthesis objective becomes
+The final synthesis objective is therefore defined as
 
 ```math
 L_{syn}
@@ -209,84 +199,65 @@ L_{syn}
 L_{NLL}
 +
 \eta_{evid}
-R_{evid}
+R_{evid},
 ```
 
-where
+where $\eta_{evid}$ controls the strength of the evidential regularization term.
 
-```math
-\eta_{evid}
-```
-
-controls regularization strength.
+Through this formulation, the synthesis branch simultaneously produces synthetic CT predictions, predictive variances and uncertainty estimates within a single forward pass.
 
 ---
 
-# 9. Evidential Segmentation
+### Segmentation Head
 
-## 9.1 Evidence Representation
+While the synthesis task operates in a continuous regression setting, segmentation requires classification of every voxel into one of $C$ anatomical classes. Rather than directly predicting class probabilities, the segmentation head adopts the Evidential Deep Learning framework, which learns the amount of evidence supporting each class.
 
-Instead of predicting class probabilities directly, the network predicts non-negative evidence:
-
-```math
-e=
-[e_1,e_2,\ldots,e_C]
-```
-
----
-
-## 9.2 Dirichlet Parameters
-
-The evidence is converted into Dirichlet parameters:
+For each voxel, the model outputs a non-negative evidence vector,
 
 ```math
-\alpha=e+1
+e
+=
+[e_1,e_2,\ldots,e_C].
 ```
 
----
+Evidence values are transformed into Dirichlet concentration parameters through
 
-## 9.3 Dirichlet Strength
+```math
+\alpha
+=
+e + 1.
+```
 
-The total evidence strength is
+The resulting Dirichlet distribution provides a probabilistic representation of class assignments and enables uncertainty estimation directly from the network outputs. The overall evidence strength is defined as
 
 ```math
 S
 =
 \sum_{c=1}^{C}
-\alpha_c
+\alpha_c,
 ```
 
----
-
-## 9.4 Expected Probabilities
-
-Expected class probabilities are
+which represents the total amount of support available for the classification decision. Expected class probabilities are obtained as
 
 ```math
-\hat p_c
+\hat{p}_c
 =
-\frac{\alpha_c}{S}
+\frac{\alpha_c}{S}.
 ```
 
----
+Unlike conventional softmax probabilities, these quantities are accompanied by an explicit measure of uncertainty derived from the evidence itself.
 
-## 9.5 Predictive Uncertainty
-
-Global segmentation uncertainty is
+Segmentation uncertainty is computed as
 
 ```math
 u_{seg}
 =
-\frac{C}{S}
+\frac{C}{S}.
 ```
 
-Higher evidence implies lower uncertainty.
+A high evidence strength corresponds to low uncertainty, whereas insufficient evidence yields larger uncertainty values. Consequently, uncertainty naturally emerges from the learned evidence representation rather than requiring additional post-processing procedures.
 
----
-
-## 9.6 Classwise Variance
-
-Class-specific uncertainty is
+In addition to a global uncertainty measure, class-specific uncertainty can also be computed through the Dirichlet variance,
 
 ```math
 Var[p_c]
@@ -295,20 +266,10 @@ Var[p_c]
 \alpha_c(S-\alpha_c)
 }{
 S^2(S+1)
-}
+}.
 ```
 
----
-
-# 10. Expected Squared Error Loss
-
-Given a one-hot target:
-
-```math
-y
-```
-
-the Expected Squared Error loss becomes
+Training follows the Evidential Deep Learning formulation based on the Expected Squared Error (ESE) objective,
 
 ```math
 L_{ESE}
@@ -317,18 +278,12 @@ L_{ESE}
 (y_c-\hat p_c)^2
 +
 \sum_{c=1}^{C}
-Var[p_c]
+Var[p_c].
 ```
 
-The first term penalizes classification error.
+The first term penalizes classification errors, while the second explicitly incorporates predictive uncertainty and discourages overconfident predictions.
 
-The second term incorporates predictive uncertainty.
-
----
-
-# 11. Dirichlet Regularization
-
-The Dirichlet prediction is regularized using the KL divergence to a uniform prior.
+To further regularize the evidence distribution, a Kullback-Leibler divergence term is introduced between the predicted Dirichlet distribution and a non-informative uniform prior,
 
 ```math
 KL[\alpha||1]
@@ -347,19 +302,12 @@ KL[\alpha||1]
 (\alpha_c-1)
 \left[
 \psi(\alpha_c)-\psi(S)
-\right]
+\right].
 ```
 
-where:
+This regularization encourages uncertain predictions whenever the evidence supporting a decision is insufficient.
 
-- Γ denotes the Gamma function
-- ψ denotes the Digamma function
-
----
-
-# 12. Evidential Segmentation Loss
-
-The evidential objective is
+The resulting evidential segmentation loss becomes
 
 ```math
 L_{EDL}
@@ -367,14 +315,10 @@ L_{EDL}
 L_{ESE}
 +
 \lambda
-KL[\alpha||1]
+KL[\alpha||1].
 ```
 
----
-
-# 13. KL Warmup
-
-To avoid excessive regularization during early training:
+To avoid excessive regularization during the initial stages of training, the contribution of the KL divergence is progressively increased through a warmup schedule,
 
 ```math
 \lambda(t)
@@ -385,19 +329,12 @@ To avoid excessive regularization during early training:
 \left(
 1,
 \frac{t}{T}
-\right)
+\right),
 ```
 
-where:
+where $t$ denotes the current epoch and $T$ corresponds to the warmup duration.
 
-- t denotes current epoch
-- T denotes warmup length
-
----
-
-# 14. Auxiliary Cross-Entropy
-
-An additional cross-entropy term is included:
+Finally, an auxiliary cross-entropy objective is combined with the evidential formulation,
 
 ```math
 L_{CE}
@@ -411,160 +348,20 @@ y_{ijc}
 \log
 (
 \hat p_{ijc}
-)
+),
 ```
 
----
-
-# 15. Segmentation Loss
-
-The final segmentation objective is
+yielding the final segmentation loss,
 
 ```math
 L_{seg}
 =
 L_{CE}
 +
-L_{EDL}
+L_{EDL}.
 ```
 
----
-
-# 16. Multitask Objective
-
-The network is trained end-to-end through a combined loss:
-
-```math
-L_{total}
-=
-L_{syn}
-+
-L_{seg}
-```
-
-This formulation encourages the encoder to learn representations simultaneously informative for synthesis and segmentation.
-
----
-
-# 17. 2.5D Input Strategy
-
-SENSSE supports both 2D and 2.5D training.
-
-Input tensors are:
-
-```math
-x
-\in
-\mathbb R^{H\times W\times K}
-```
-
-where:
-
-```math
-K
-```
-
-is an odd number.
-
-The manuscript configuration uses:
-
-```yaml
-num_slices: 5
-```
-
-corresponding to:
-
-```text
-i-2
-i-1
-i
-i+1
-i+2
-```
-
-The central slice is used as prediction target.
-
----
-
-# 18. Uncertainty Quantification
-
-SENSSE estimates uncertainty in a single forward pass.
-
-## Synthesis
-
-Predicted from:
-
-```math
-(\mu,\lambda,\alpha,\beta)
-```
-
-via NIG statistics.
-
-Provides:
-
-- Predictive mean
-- Predictive variance
-- Aleatoric uncertainty
-- Epistemic uncertainty
-
----
-
-## Segmentation
-
-Predicted from:
-
-```math
-\alpha
-```
-
-via Dirichlet statistics.
-
-Provides:
-
-- Expected probabilities
-- Total uncertainty
-- Classwise uncertainty
-
----
-
-# 19. Implementation Details
-
-Framework:
-
-```text
-TensorFlow 2.12
-```
-
-Optimizer:
-
-```text
-AdamW
-```
-
-Learning rate:
-
-```text
-1e-4
-```
-
-Batch size:
-
-```text
-4
-```
-
-Training epochs:
-
-```text
-150
-```
-
-Paper configuration:
-
-```yaml
-num_slices: 5
-interaction: syn2seg
-```
+By combining evidence learning, probabilistic reasoning, and uncertainty-aware regularization, the segmentation head produces anatomically meaningful predictions together with voxel-wise confidence estimates that can be directly incorporated into downstream clinical decision-making workflows.
 
 ---
 
@@ -575,4 +372,5 @@ For complete theoretical background please refer to:
 - Sensoy et al. (2018), Evidential Deep Learning
 - Amini et al. (2020), Deep Evidential Regression
 - Oktay et al. (2018), Attention U-Net
+- Rodriguez-Gonzalez et al. (2026), ENSE
 - Rodriguez-Gonzalez et al. (2026), SENSSE
