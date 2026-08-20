@@ -156,6 +156,18 @@ Var(y)
 
 This variance captures both intrinsic image ambiguity and model uncertainty. Consequently, uncertainty estimates can be decomposed into aleatoric and epistemic components directly from the predicted NIG parameters without requiring Monte Carlo sampling or ensemble methods.
 
+Aleatoric uncertainty captures intrinsic ambiguity present in the imaging data, such as image noise, motion artifacts, or poorly defined anatomical boundaries, and is computed as
+
+```math
+u_{ale}= \frac{\beta}{\alpha-1}.
+```
+
+Epistemic uncertainty reflects uncertainty in the model parameters and is typically associated with underrepresented anatomical configurations or out-of-distribution samples. It is defined as
+
+```math
+u_{epi} = \frac{\beta}{\lambda(\alpha-1)}.
+```
+
 Training is performed using the Deep Evidential Regression objective. The primary component corresponds to the negative log-likelihood of the NIG distribution,
 
 ```math
