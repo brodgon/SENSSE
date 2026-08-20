@@ -40,3 +40,24 @@ As expected, variability is substantially larger in the Head & Neck cohort. This
 
 Overall, the fold-wise analysis supports the findings presented in the main manuscript, demonstrating that the proposed multitask evidential framework achieves robust and reproducible segmentation performance across multiple data partitions and anatomical regions.
 
+---
+
+# Statistical Significance Analysis
+
+To complement the fold-wise results reported above, we also performed pairwise statistical comparisons between SENSSE and the competing approaches. Statistical tests were conducted using the aggregated fold results for each metric. Normality was assessed using the Shapiro–Wilk test; depending on the outcome, either a paired t-test or a Wilcoxon signed-rank test was applied.
+
+The following table summarizes the p-values obtained when comparing SENSSE against the competing synthesis approaches for each quantitative metric.
+
+
+<p align="center">
+  <img src="images/Results_PVals-Synthesis.png" width="1000"/>
+</p>
+
+Complementary, the table below summarizes statistical p-values for all segmentation methods against SENSSE for each metric.
+
+<p align="center">
+  <img src="images/Results_PVals-Segmentation.png" width="1000"/>
+</p>
+
+The statistical analysis supports the quantitative findings reported in the manuscript.
+---
